@@ -1,18 +1,21 @@
 from odmantic import Model, Index, EmbeddedModel
 from odmantic.bson import ObjectId
+from validations.Values import FacultadesValidas
 
 from pydantic import BaseModel
 
 #database
-class clase(EmbeddedModel):
-    asignatura: ObjectId
+class Clase(EmbeddedModel):
+    asignatura: str
     puntuacion: float
+    semestre: str
 
 class Profesor(Model):
     nombres: str
     apellidos: str
+    facultad: FacultadesValidas
     puntuacion: float = 0
-    clases: list[clase] = []
+    clases: list[Clase] = []
     
     model_config = {
         "indexes": lambda: [
@@ -36,10 +39,11 @@ class Comentario(Model):
     puntuacion: float = 0
     profesor: ObjectId
     asignatura: ObjectId
-
+    semestre: str
     model_config = {
         "indexes": lambda: [
-            Index(Comentario.profesor, name="comentario_profesor")
+            Index(Comentario.profesor, name="comentario profesor"),
+            Index(Comentario.semestre, name="comentario semestre")
         ]
     }
 
@@ -48,9 +52,13 @@ dbconfig = [Profesor, Asignatura, Comentario]
 
 
 # RESPONSES
+
+class ClaseNombre(BaseModel):
+    asignatura: str
+
 class ProfesorBasic(BaseModel):
     id: ObjectId
     nombres: str
     apellidos: str
-    puntuacion: float = 0
-    clases: list[clase] = []
+    puntuacion: float
+    clases: list[ClaseNombre]

@@ -1,9 +1,7 @@
 from db.engine import Engine
-from db.models import dbconfig
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from odmantic import ObjectId
 from db.models import Profesor, ProfesorBasic
-import os
 
 router = APIRouter(
     tags=["profesor"],
@@ -16,8 +14,14 @@ async def list_profesores(page: int = 0, limit: int = 10):
 
 @router.get('/{profesor_id}', response_model=Profesor)
 async def get_profesor(profesor_id: ObjectId):
-    return await Engine.find_one(Profesor, Profesor.id==profesor_id)
+    try:
+        response = await Engine.find_one(Profesor, Profesor.id==profesor_id)
+    except:
+        HTTPException(status_code=404, detail="not found")
+    return response
 
 @router.post('/create', response_model=Profesor)
 async def create_profesor(profesor: Profesor):
+    profesor.nombres = profesor.nombres.upper()
+    profesor.apellidos = profesor.apellidos.upper()
     return await Engine.save(profesor)
