@@ -26,7 +26,6 @@ class Profesor(Model):
 class Asignatura(Model):
     nombre: str
     codigo: str
-    descripcion: str
 
     model_config = {
         "indexes": lambda: [
