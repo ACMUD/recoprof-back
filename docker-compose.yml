@@ -9,7 +9,7 @@ services:
       - database
     env_file: .env
     networks:
-      -database
+      - database
   database:
     image: 'mongo'
     ports:
