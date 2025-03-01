@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build: './'
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    env_file: .env
+    networks:
+      -database
+  database:
+    image: 'mongo'
+    ports:
+      - "27017:27017"
+    networks:
+      - database
+
+
+networks:
+  database:
+    driver: bridge
