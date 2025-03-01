@@ -1,14 +1,14 @@
 from db.engine import Engine
 from fastapi import APIRouter, HTTPException
 from odmantic import ObjectId
-from db.models import Profesor, ProfesorBasic
+from db.models import Profesor, ProfesorBase
 
 router = APIRouter(
     tags=["profesor"],
     prefix="/api/profesor"
 )
 
-@router.get('/list', response_model=list[ProfesorBasic])
+@router.get('/list', response_model=list[ProfesorBase])
 async def list_profesores(page: int = 0, limit: int = 10):
     return await Engine.find(Profesor, skip=page*limit, limit=limit)
 

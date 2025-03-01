@@ -38,7 +38,7 @@ class Comentario(Model):
     comentario: str
     puntuacion: float = 0
     profesor: ObjectId
-    asignatura: ObjectId
+    asignatura: str
     semestre: str
     model_config = {
         "indexes": lambda: [
@@ -56,9 +56,17 @@ dbconfig = [Profesor, Asignatura, Comentario]
 class ClaseNombre(BaseModel):
     asignatura: str
 
-class ProfesorBasic(BaseModel):
+class ProfesorBase(BaseModel):
     id: ObjectId
     nombres: str
     apellidos: str
     puntuacion: float
     clases: list[ClaseNombre]
+
+
+
+class ComentarioBase(BaseModel):
+    comentario: str
+    puntuacion: float = 0
+    asignatura: str
+    semestre: str
