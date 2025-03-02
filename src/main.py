@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import admin, profs, comentarios, asignaturas
+from routers import admin, profs, comentarios, asignaturas, auth
 
 
 app = FastAPI()
@@ -21,6 +21,7 @@ app.include_router(admin)
 app.include_router(profs)
 app.include_router(comentarios)
 app.include_router(asignaturas)
+app.include_router(auth)
 
 @app.get("/health")
 async def health_check():
