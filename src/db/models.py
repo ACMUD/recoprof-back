@@ -3,17 +3,31 @@ from odmantic.bson import ObjectId
 from validations.Values import FacultadesValidas
 
 #database
-class Clase(EmbeddedModel):
+class Puntuacion(EmbeddedModel):
+    valor: float
+    cantidad: int
+    semestre: tuple[int,int]
+
+class Notas(Model):
     asignatura: str
-    puntuacion: float
-    semestre: str
+    profesor: ObjectId
+    puntuaciones: list[Puntuacion] = []
+
+    model_config = {
+        "indexes": lambda: [
+            Index(Notas.profesor, name="notas profesor"),
+            Index(Notas.asignatura, name="notas asignatura"),
+            Index(Notas.asignatura, Notas.profesor, name="notas asignatura profesor")
+        ]
+    }
 
 class Profesor(Model):
     nombres: str
     apellidos: str
     facultad: FacultadesValidas
     puntuacion: float = 0
-    clases: list[Clase] = []
+    Cantidad: int = 0
+    clases: list[str] = []
     
     model_config = {
         "indexes": lambda: [
@@ -21,6 +35,7 @@ class Profesor(Model):
         ]
     }
 
+    
 class Asignatura(Model):
     nombre: str
     codigo: str
@@ -36,7 +51,7 @@ class Comentario(Model):
     puntuacion: float = 0
     profesor: ObjectId
     asignatura: str
-    semestre: str
+    semestre: tuple[int,int]
     model_config = {
         "indexes": lambda: [
             Index(Comentario.profesor, name="comentario profesor"),
@@ -44,4 +59,4 @@ class Comentario(Model):
         ]
     }
 
-dbconfig = [Profesor, Asignatura, Comentario]
+dbconfig = [Profesor, Asignatura, Comentario, Notas]
