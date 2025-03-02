@@ -39,14 +39,15 @@ async def create_profesor(profesor: Profesor, acc: Annotated[bool, Depends(acces
     profesor.apellidos = profesor.apellidos.upper()
     return await Engine.save(profesor)
 
-@router.delete('/delete/{profesor_id}', response_model=Profesor)
+@router.delete('/delete/{profesor_id}')
 async def delete_profesor(profesor_id: ObjectId, acc: Annotated[bool, Depends(access)]):
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
     
     try:
-        response = await Engine.remove(Profesor, Profesor.id==profesor_id)
-        response = await Engine.remove(Comentario, Comentario.profesor==profesor_id)
+        await Engine.remove(Profesor, Profesor.id==profesor_id)
+        await Engine.remove(Comentario, Comentario.profesor==profesor_id)
+        await Engine.remove(Notas, Notas.profesor==profesor_id)
     except:
         HTTPException(status_code=404, detail="not found")
-    return response
+    return {"status": "ok"}
