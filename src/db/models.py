@@ -2,8 +2,6 @@ from odmantic import Model, Index, EmbeddedModel
 from odmantic.bson import ObjectId
 from validations.Values import FacultadesValidas
 
-from pydantic import BaseModel
-
 #database
 class Clase(EmbeddedModel):
     asignatura: str
@@ -47,25 +45,3 @@ class Comentario(Model):
     }
 
 dbconfig = [Profesor, Asignatura, Comentario]
-
-
-
-# RESPONSES
-
-class ClaseNombre(BaseModel):
-    asignatura: str
-
-class ProfesorBase(BaseModel):
-    id: ObjectId
-    nombres: str
-    apellidos: str
-    puntuacion: float
-    clases: list[ClaseNombre]
-
-
-
-class ComentarioBase(BaseModel):
-    comentario: str
-    puntuacion: float = 0
-    asignatura: str
-    semestre: str
