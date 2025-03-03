@@ -1,6 +1,8 @@
 from db.engine import Engine
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from db.models import Asignatura
+from typing import Annotated
+from .auth import access
 
 router = APIRouter(
     tags=["asignatura"],
@@ -9,7 +11,9 @@ router = APIRouter(
 
 
 @router.post('/')
-async def create_asisgnatura(asignatura: Asignatura):
+async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depends(access)]):
+    if not acc:
+        raise HTTPException(status_code=401, detail="Unauthorized")
     asignatura.nombre = asignatura.nombre.upper()
     await Engine.save(asignatura)
     return asignatura
