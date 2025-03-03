@@ -22,8 +22,7 @@ class Notas(Model):
     }
 
 class Profesor(Model):
-    nombres: str
-    apellidos: str
+    nombre: str
     facultad: FacultadesValidas
     puntuacion: float = 0
     Cantidad: int = 0
@@ -31,18 +30,18 @@ class Profesor(Model):
     
     model_config = {
         "indexes": lambda: [
-            Index(Profesor.apellidos, name="profesor_apellidos")
+            Index(Profesor.nombre, name="profesor_nombre")
         ]
     }
 
     
 class Asignatura(Model):
     nombre: str
-    codigo: str
+    codigo: int
 
     model_config = {
         "indexes": lambda: [
-            Index(Asignatura.codigo, name="asignatura_codigo")
+            Index(Asignatura.codigo, name="asignatura_codigo", unique=True)
         ]
     }
 

@@ -4,8 +4,7 @@ from pydantic import BaseModel
 
 class ProfesorBase(BaseModel):
     id: ObjectId
-    nombres: str
-    apellidos: str
+    nombre: str
     puntuacion: float
     asignaturas: list[str]
 

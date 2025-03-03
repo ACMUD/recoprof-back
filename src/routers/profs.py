@@ -35,8 +35,7 @@ async def get_profesor(profesor_id: ObjectId):
 
 @router.post('/create', response_model=Profesor)
 async def create_profesor(profesor: Profesor, acc: Annotated[bool, Depends(access)]):
-    profesor.nombres = profesor.nombres.upper()
-    profesor.apellidos = profesor.apellidos.upper()
+    profesor.nombre = profesor.nombre.upper()
     return await Engine.save(profesor)
 
 @router.delete('/delete/{profesor_id}')
