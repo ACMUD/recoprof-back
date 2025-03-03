@@ -1,13 +1,13 @@
 from odmantic.bson import ObjectId
 from pydantic import BaseModel
-
+from validations.Values import FacultadesValidas
 
 class ProfesorBase(BaseModel):
     id: ObjectId
-    nombres: str
-    apellidos: str
+    nombre: str
+    facultad: FacultadesValidas
     puntuacion: float
-    asignaturas: list[str]
+    clases: list[str]
 
 class ComentarioBase(BaseModel):
     id: ObjectId
