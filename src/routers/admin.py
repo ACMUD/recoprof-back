@@ -22,7 +22,7 @@ async def configure(acc: Annotated[bool, Depends(access)]):
     await Engine.configure_database(dbconfig,update_existing_indexes=True)
 
 @router.post('/materias')
-async def materias(facultad:FacultadesValidas = Form(), YY: int = Form(), periodo: int = Form(), file: UploadFile = File(...), acc: bool = Depends(access)):
+async def materias(facultad:FacultadesValidas = Form(), file: UploadFile = File(...), acc: bool = Depends(access)):
     """
     Utilidad para insertar materias a partir de un documento pdf con dichas materias
     PDF;
