@@ -9,7 +9,7 @@ class Puntuacion(EmbeddedModel):
     semestre: tuple[int,int]
 
 class Notas(Model):
-    asignatura: str
+    asignatura: ObjectId
     profesor: ObjectId
     puntuaciones: list[Puntuacion] = []
 
@@ -23,10 +23,8 @@ class Notas(Model):
 
 class Profesor(Model):
     nombre: str
-    facultad: FacultadesValidas
-    puntuacion: float = 0
-    Cantidad: int = 0
-    clases: list[str] = []
+    facultades: list[FacultadesValidas] = []
+    asignaturas: list[ObjectId] = []
     
     model_config = {
         "indexes": lambda: [
@@ -38,6 +36,7 @@ class Profesor(Model):
 class Asignatura(Model):
     nombre: str
     codigo: int
+    facultades: list[FacultadesValidas] = []
 
     model_config = {
         "indexes": lambda: [
@@ -49,7 +48,7 @@ class Comentario(Model):
     comentario: str
     puntuacion: float = 0
     profesor: ObjectId
-    asignatura: str
+    asignatura: ObjectId
     semestre: tuple[int,int]
     model_config = {
         "indexes": lambda: [

@@ -36,10 +36,10 @@ async def materias(facultad:FacultadesValidas = Form(), file: UploadFile = File(
     for p in profs:
         prof_db = await Engine.find_one(Profesor, Profesor.nombre == p)
         if prof_db is None:
-            profesor = Profesor(nombre=p, facultad=facultad, clases=profs[p])
+            profesor = Profesor(nombre=p, facultad=facultad, asignaturas=profs[p])
             await Engine.save(profesor)
         else:
             tmpclases = prof_db.clases+tmpclases
             tmpclases = list(set(tmpclases))
-            await Engine.save(prof_db, clases=tmpclases)
+            await Engine.save(prof_db, asignaturas=tmpclases)
     return materias

@@ -21,21 +21,22 @@ async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: in
 
 @router.post('/')
 async def create_comment(comentario: Comentario):
-    if comentario.puntuacion < 0 or comentario.puntuacion > 5:
+    if 5< comentario.puntuacion or comentario.puntuacion < 0:
         raise HTTPException(status_code=400, detail="Puntuacion invalida")
 
     notas = await Engine.find_one(Notas, Notas.asignatura==comentario.asignatura, Notas.profesor==comentario.profesor)
     if not notas:
         profesor = await Engine.find_one(Profesor, Profesor.id==comentario.profesor)
         notas = Notas(asignatura=comentario.asignatura, profesor=comentario.profesor, puntuaciones=[])
-        profesor.clases.append(comentario.asignatura)
+        profesor.asignaturas.append(comentario.asignatura)
         await Engine.save(profesor)
         
+    cantidad = await Engine.count(Comentario, Comentario.profesor==comentario.profesor, Comentario.asignatura==comentario.asignatura, Comentario.semestre==comentario.semestre)
 
     for p in notas.puntuaciones:
         if p.semestre == comentario.semestre:
-            p.cantidad += 1
-            p.valor = (p.valor*(p.cantidad-1) + comentario.puntuacion)/p.cantidad
+            cantidad += 1
+            p.valor = (p.valor*(cantidad-1) + comentario.puntuacion)/cantidad
             break
     else:
         puntuacion = Puntuacion(cantidad=1, valor=comentario.puntuacion, semestre=comentario.semestre)
