@@ -43,7 +43,7 @@ async def pdfextract(file):
     for i in data:
         if i[2] not in profs:
             profs[i[2]] = []
-        profs[i[2]].append(i[1])
+        profs[i[2]].append(i[0])
     
     materias = list(set([(i[0],i[1]) for i in data]))
 

@@ -29,17 +29,25 @@ async def materias(facultad:FacultadesValidas = Form(), file: UploadFile = File(
         cod | materia | Dia | Hora | Edificio | Salon | Profesor
     """
     materias, profs = await pdfextract(file.file)
+
+    ids = {}
+
     for materia in materias:
         mat_db = await Engine.find_one(Asignatura, Asignatura.codigo == materia[0])
-        if mat_db is None:
-            await Engine.save(Asignatura(codigo=materia[0], nombre=materia[1]))
+        if not mat_db:
+            mat_db = Asignatura(codigo=materia[0], nombre=materia[1])
+        
+        mat_db.facultades = list(set(mat_db.facultades + [facultad]))
+        
+        mat_db = await Engine.save(mat_db)
+        ids[materia[0]]=mat_db.id
+
     for p in profs:
         prof_db = await Engine.find_one(Profesor, Profesor.nombre == p)
         if prof_db is None:
-            profesor = Profesor(nombre=p, facultad=facultad, asignaturas=profs[p])
-            await Engine.save(profesor)
-        else:
-            tmpclases = prof_db.clases+tmpclases
-            tmpclases = list(set(tmpclases))
-            await Engine.save(prof_db, asignaturas=tmpclases)
+            prof_db = Profesor(nombre=p)
+
+        prof_db.asignaturas = list(set(prof_db.asignaturas+[ids[i] for i in profs[p]]))
+        prof_db.facultades = list(set(prof_db.facultades + [facultad]))
+        await Engine.save(prof_db)
     return materias
