@@ -7,7 +7,7 @@ from .auth import access
 
 from validations.Values import FacultadesValidas
 
-from responseBody import ProfesorBase
+import responseBody as rb
 
 router = APIRouter(
     tags=["asignatura"],
@@ -27,19 +27,19 @@ async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depend
 async def list_asignaturas(page: int = 0, limit: int = 10):
     return await Engine.find(Asignatura, skip=page*limit, limit=limit)
 
-@router.get('/profes/{asignatura_id}', response_model=list[ProfesorBase])
+@router.get('/profes/{asignatura_id}', response_model=list[rb.ProfesorBase])
 async def get_asignatura_profs(asignatura_id: ObjectId):
     return await Engine.find(Profesor, {"asignaturas": {"$in": [asignatura_id]}})
 
 @router.get('/facultad/{facultad}')
 async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10):
      # Contar el total de asignaturas que coinciden con el filtro
-    total = await Engine.count(Asignatura, {"facultades": facultad})
+    total = await Engine.count(Asignatura, Asignatura.facultades == facultad)
     
     # Obtener las asignaturas con paginación y ordenación
     asignaturas = await Engine.find(
         Asignatura, 
-        {"facultades": facultad},
+        Asignatura.facultades == facultad,
         skip=page*limit,
         limit=limit
     )
@@ -48,10 +48,7 @@ async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, li
     total_paginas = (total + limit - 1) // limit if limit > 0 else 1
     
     asignaturas_simplificadas = [
-        {
-            "nombre": asignatura.nombre,
-            "codigo": asignatura.codigo
-        }
+        rb.AsignaturasBase(**asignatura.model_dump())
         for asignatura in asignaturas
     ]
 
