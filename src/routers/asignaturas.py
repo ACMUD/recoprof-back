@@ -23,39 +23,39 @@ async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depend
     await Engine.save(asignatura)
     return asignatura
 
-@router.get('/list')
+@router.get('/list', response_model = rb.PaginacionAsignaturasBase)
 async def list_asignaturas(page: int = 0, limit: int = 10, name:str = ''):
     name = name.upper()
-    return await Engine.find(Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), skip=page*limit, limit=limit)
+    args = [Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*")]
+    kwargs = {"skip":page*limit, "limit":limit}
+    total = await Engine.count(*args)
+    return {"contenido": await Engine.find(*args, **kwargs),
+            "total" : total,
+            "total_paginas" : (total + limit - 1) // limit if limit > 0 else 1
+            }
 
-@router.get('/profes/{asignatura_id}', response_model=list[rb.ProfesorBase])
-async def get_asignatura_profs(asignatura_id: ObjectId):
-    return await Engine.find(Profesor, Profesor.asignaturas.in_([asignatura_id]))
+@router.get('/profes/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
+async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit:int = 10):
 
-@router.get('/facultad/{facultad}')
+    args = [Profesor, Profesor.asignaturas.in_([asignatura_id])]
+    kwargs = {"skip":page*limit, "limit":limit}
+
+    total = await Engine.count(*args)
+    return {"contenido": await Engine.find(*args, **kwargs),
+            "total": total,
+            "total_paginas": (total + limit - 1) // limit if limit > 0 else 1}
+
+@router.get('/facultad/{facultad}', response_model = rb.PaginacionAsignaturasBase)
 async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10, name:str = ''):
     name = name.upper()
-    total = await Engine.count(Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), Asignatura.facultades == facultad)
     
-    # Obtener las asignaturas con paginación y ordenación
-    asignaturas = await Engine.find(
-        Asignatura,
-        Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"),
-        Asignatura.facultades == facultad,
-        skip=page*limit,
-        limit=limit
-    )
+    args = [Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), Asignatura.facultades == facultad]
+    kwargs = {"skip":page*limit, "limit":limit}
     
-    # Calcular metadatos de paginación
-    total_paginas = (total + limit - 1) // limit if limit > 0 else 1
-    
-    asignaturas_simplificadas = [
-        rb.AsignaturasBase(**asignatura.model_dump())
-        for asignatura in asignaturas
-    ]
+    total = await Engine.count(*args)
 
     return {
-        "asignaturas": asignaturas_simplificadas,
-        "total": total,
-        "total_paginas": total_paginas
-    }
+            "contenido": await Engine.find(*args, **kwargs),
+            "total": total,
+            "total_paginas": (total + limit - 1) // limit if limit > 0 else 1
+            }
