@@ -1,8 +1,8 @@
 from db.engine import Engine
 from fastapi import APIRouter, HTTPException, Depends
 from odmantic import ObjectId
-from db.models import Profesor, Comentario, Notas
-from responseBody import ProfesorAsignaturas
+from db.models import Profesor, Comentario, Notas, Asignatura
+import responseBody as rb
 from typing import Annotated
 from .auth import access
 from validations.Values import FacultadesValidas
@@ -11,7 +11,7 @@ router = APIRouter(
     prefix="/api/profesor"
 )
 
-@router.get('/list', response_model=list[ProfesorAsignaturas])
+@router.get('/list', response_model=list[rb.ProfesorAsignaturas])
 async def list_profesores(page: int = 0, limit: int = 10):
     profesor = await Engine.find(Profesor, skip=page*limit, limit=limit)
     return profesor
@@ -53,25 +53,22 @@ async def delete_profesor(profesor_id: ObjectId, acc: Annotated[bool, Depends(ac
 
 @router.get('/facultad/{facultad}')
 async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10):
-     # Contar el total de Profesores que coinciden con el filtro
-    total = await Engine.count(Profesor, {"facultades": facultad})
+    total = await Engine.count(Profesor, Profesor.facultades == facultad)
     
-    # Obtener las Profesores con paginación y ordenación
     profesores = await Engine.find(
         Profesor, 
-        {"facultades": facultad},
+        Profesor.facultades == facultad,
         skip=page*limit,
         limit=limit
     )
     
-    # Calcular metadatos de paginación
     total_paginas = (total + limit - 1) // limit if limit > 0 else 1
     
     profesores_simplificadas = [
-        {
-            "nombre": profesor.nombre,
-            "id": str(profesor.id)
-        }
+        rb.ProfesorPorFacultad(**profesor.model_dump(),
+            asignaturas_nombre = [
+                rb.Asignatura(**(asign.model_dump()))
+                 for asign in (await Engine.find(Asignatura,Asignatura.id.in_(profesor.asignaturas)))])
         for profesor in profesores
     ]
 
