@@ -29,7 +29,7 @@ async def list_asignaturas(page: int = 0, limit: int = 10):
 
 @router.get('/profes/{asignatura_id}', response_model=list[rb.ProfesorBase])
 async def get_asignatura_profs(asignatura_id: ObjectId):
-    return await Engine.find(Profesor, {"asignaturas": {"$in": [asignatura_id]}})
+    return await Engine.find(Profesor, Profesor.asignaturas.in_([asignatura_id]))
 
 @router.get('/facultad/{facultad}')
 async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10):
