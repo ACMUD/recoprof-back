@@ -24,21 +24,23 @@ async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depend
     return asignatura
 
 @router.get('/list')
-async def list_asignaturas(page: int = 0, limit: int = 10):
-    return await Engine.find(Asignatura, skip=page*limit, limit=limit)
+async def list_asignaturas(page: int = 0, limit: int = 10, name:str = ''):
+    name = name.upper()
+    return await Engine.find(Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), skip=page*limit, limit=limit)
 
 @router.get('/profes/{asignatura_id}', response_model=list[rb.ProfesorBase])
 async def get_asignatura_profs(asignatura_id: ObjectId):
     return await Engine.find(Profesor, Profesor.asignaturas.in_([asignatura_id]))
 
 @router.get('/facultad/{facultad}')
-async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10):
-     # Contar el total de asignaturas que coinciden con el filtro
-    total = await Engine.count(Asignatura, Asignatura.facultades == facultad)
+async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10, name:str = ''):
+    name = name.upper()
+    total = await Engine.count(Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), Asignatura.facultades == facultad)
     
     # Obtener las asignaturas con paginación y ordenación
     asignaturas = await Engine.find(
-        Asignatura, 
+        Asignatura,
+        Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"),
         Asignatura.facultades == facultad,
         skip=page*limit,
         limit=limit
