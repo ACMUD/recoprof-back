@@ -11,11 +11,25 @@ router = APIRouter(
     prefix="/api/profesor"
 )
 
-@router.get('/list', response_model=list[rb.ProfesorAsignaturas])
+@router.get('/list', response_model = rb.PaginacionProfesor)
 async def list_profesores(page: int = 0, limit: int = 10, name:str = ''):
     name = name.upper()
-    profesor = await Engine.find(Profesor, Profesor.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), skip=page*limit, limit=limit)
-    return profesor
+
+    args = [Profesor, Profesor.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*")]
+    kwargs = {"skip":page*limit, "limit":limit}
+    total = await Engine.count(*args)
+    profesores = await Engine.find(*args, **kwargs)
+    profesores_simplificadas = [
+        rb.ProfesorConAsignatura(**profesor.model_dump(),
+            asignaturas_nombre = [
+                rb.AsignaturasBase(**(asign.model_dump()))
+                 for asign in (await Engine.find(Asignatura,Asignatura.id.in_(profesor.asignaturas)))])
+        for profesor in profesores
+    ]
+
+    return {"contenido":profesores_simplificadas,
+            "total": total,
+            "total_paginas": (total + limit - 1) // limit if limit > 0 else 1}
 
 @router.get('/{profesor_id}', response_model=Profesor)
 async def get_profesor(profesor_id: ObjectId):
@@ -52,7 +66,7 @@ async def delete_profesor(profesor_id: ObjectId, acc: Annotated[bool, Depends(ac
         HTTPException(status_code=404, detail="not found")
     return {"status": "ok"}
 
-@router.get('/facultad/{facultad}')
+@router.get('/facultad/{facultad}', response_model = rb.PaginacionProfesorPorFacultad)
 async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10, name:str = ""):
     name = name.upper()
     total = await Engine.count(Profesor, Profesor.nombre.match("[A-z ]*"+name+"[A-z ]*"), Profesor.facultades == facultad)
@@ -76,7 +90,7 @@ async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, li
     ]
 
     return {
-        "Profesores": profesores_simplificadas,
+        "contenido": profesores_simplificadas,
         "total": total,
         "total_paginas": total_paginas
     }

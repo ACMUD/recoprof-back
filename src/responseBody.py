@@ -30,6 +30,29 @@ class ComentarioBase(BaseModel):
 class AsignaturasBase(Asignatura):
     codigo: int
 
+class ProfesorConAsignatura(ProfesorBase):
+    asignaturas_nombre: list[AsignaturasBase] = []
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class AsignaturaTotal(AsignaturasBase):
+    facultades: list[FacultadesValidas] = []
+# Paginaciones
+
+class BasePaginacion(BaseModel):
+    total: int
+    total_paginas:int
+
+class PaginacionProfesorBase(BasePaginacion):
+    contenido: list[ProfesorBase]
+
+class PaginacionAsignaturasBase(BasePaginacion):
+    contenido: list[AsignaturaTotal]
+
+class PaginacionProfesorPorFacultad(BasePaginacion):
+    contenido: list[ProfesorPorFacultad]
+
+class PaginacionProfesor(BasePaginacion):
+    contenido: list[ProfesorConAsignatura]
