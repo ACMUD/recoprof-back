@@ -12,8 +12,9 @@ router = APIRouter(
 )
 
 @router.get('/list', response_model=list[rb.ProfesorAsignaturas])
-async def list_profesores(page: int = 0, limit: int = 10):
-    profesor = await Engine.find(Profesor, skip=page*limit, limit=limit)
+async def list_profesores(page: int = 0, limit: int = 10, name:str = ''):
+    name = name.upper()
+    profesor = await Engine.find(Profesor, Profesor.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), skip=page*limit, limit=limit)
     return profesor
 
 @router.get('/{profesor_id}', response_model=Profesor)
@@ -52,11 +53,13 @@ async def delete_profesor(profesor_id: ObjectId, acc: Annotated[bool, Depends(ac
     return {"status": "ok"}
 
 @router.get('/facultad/{facultad}')
-async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10):
-    total = await Engine.count(Profesor, Profesor.facultades == facultad)
+async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10, name:str = ""):
+    name = name.upper()
+    total = await Engine.count(Profesor, Profesor.nombre.match("[A-z ]*"+name+"[A-z ]*"), Profesor.facultades == facultad)
     
     profesores = await Engine.find(
-        Profesor, 
+        Profesor,
+        Profesor.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"),
         Profesor.facultades == facultad,
         skip=page*limit,
         limit=limit
