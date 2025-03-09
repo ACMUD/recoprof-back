@@ -1,6 +1,9 @@
 from odmantic import Model, Index, EmbeddedModel
+from typing_extensions import Self
 from odmantic.bson import ObjectId
 from validations.Values import FacultadesValidas
+
+from pydantic import model_validator
 
 #database
 class Puntuacion(EmbeddedModel):
@@ -19,7 +22,7 @@ class Notas(Model):
             Index(Notas.asignatura, name="notas asignatura"),
             Index(Notas.asignatura, Notas.profesor, name="notas asignatura profesor")
         ]
-    }
+    } 
 
 class Profesor(Model):
     nombre: str
@@ -50,11 +53,19 @@ class Comentario(Model):
     profesor: ObjectId
     asignatura: ObjectId
     semestre: tuple[int,int]
+
     model_config = {
         "indexes": lambda: [
             Index(Comentario.profesor, name="comentario profesor"),
             Index(Comentario.semestre, name="comentario semestre")
         ]
     }
+
+    @model_validator(mode='after')
+    def val_puntuacion(self) -> Self:
+        if 0 > self.puntuacion or self.puntuacion >5:
+            raise ValueError("Puntuación debe estar entre 0 y 5")
+        return self
+    
 
 dbconfig = [Profesor, Asignatura, Comentario, Notas]
