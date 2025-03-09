@@ -21,9 +21,6 @@ async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: in
 
 @router.post('/')
 async def create_comment(comentario: Comentario):
-    if 5< comentario.puntuacion or comentario.puntuacion < 0:
-        raise HTTPException(status_code=400, detail="Puntuacion invalida")
-
     notas = await Engine.find_one(Notas, Notas.asignatura==comentario.asignatura, Notas.profesor==comentario.profesor)
     if not notas:
         profesor = await Engine.find_one(Profesor, Profesor.id==comentario.profesor)
