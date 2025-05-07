@@ -31,6 +31,7 @@ async def list_asignaturas(page: int = 0, limit: int = 10, name:str = ''):
     total = await Engine.count(*args)
     return {"contenido": await Engine.find(*args, **kwargs),
             "total" : total,
+            "pagina": page,
             "total_paginas" : (total + limit - 1) // limit if limit > 0 else 1
             }
 
@@ -43,6 +44,7 @@ async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit:int
     total = await Engine.count(*args)
     return {"contenido": await Engine.find(*args, **kwargs),
             "total": total,
+            "pagina": page,
             "total_paginas": (total + limit - 1) // limit if limit > 0 else 1}
 
 @router.get('/facultad/{facultad}', response_model = rb.PaginacionAsignaturasBase)
@@ -57,5 +59,6 @@ async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, li
     return {
             "contenido": await Engine.find(*args, **kwargs),
             "total": total,
+            "pagina": page,
             "total_paginas": (total + limit - 1) // limit if limit > 0 else 1
             }
