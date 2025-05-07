@@ -17,7 +17,7 @@ class Asignatura(BaseModel):
 class ProfesorPorFacultad(BaseModel):
     id: ObjectId
     nombre: str
-    asignaturas_nombre: list[Asignatura] =[]
+    asignaturas_info: list[Asignatura] =[]
 
 class ComentarioBase(BaseModel):
     id: ObjectId
@@ -31,7 +31,7 @@ class AsignaturasBase(Asignatura):
     codigo: int
 
 class ProfesorConAsignatura(ProfesorBase):
-    asignaturas_nombre: list[AsignaturasBase] = []
+    asignaturas_info: list[AsignaturasBase] = []
 
 class Token(BaseModel):
     access_token: str
@@ -43,6 +43,7 @@ class AsignaturaTotal(AsignaturasBase):
 
 class BasePaginacion(BaseModel):
     total: int
+    pagina: int
     total_paginas:int
 
 class PaginacionProfesorBase(BasePaginacion):
@@ -50,9 +51,6 @@ class PaginacionProfesorBase(BasePaginacion):
 
 class PaginacionAsignaturasBase(BasePaginacion):
     contenido: list[AsignaturaTotal]
-
-class PaginacionProfesorPorFacultad(BasePaginacion):
-    contenido: list[ProfesorPorFacultad]
 
 class PaginacionProfesor(BasePaginacion):
     contenido: list[ProfesorConAsignatura]
