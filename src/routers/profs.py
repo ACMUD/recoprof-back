@@ -7,7 +7,7 @@ from typing import Annotated
 from .auth import access
 from validations.Values import FacultadesValidas
 
-from utils.pipelines import paginacion, match, match_non_regex, lookup, add_fields, unset, LOOKUP_PIPE, NOTAS
+from utils.pipelines import paginacion, match, match_non_regex, LOOKUP_PIPE, NOTAS
 
 router = APIRouter(
     tags=["profesor"],

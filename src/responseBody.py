@@ -7,17 +7,9 @@ class ProfesorBase(BaseModel):
     nombre: str
     facultades: list[FacultadesValidas]
 
-class ProfesorAsignaturas(ProfesorBase):
-    asignaturas: list[ObjectId]
-
 class Asignatura(BaseModel):
     id: ObjectId
     nombre: str
-
-class ProfesorPorFacultad(BaseModel):
-    id: ObjectId
-    nombre: str
-    asignaturas_info: list[Asignatura] =[]
 
 class ComentarioBase(BaseModel):
     id: ObjectId
@@ -25,7 +17,7 @@ class ComentarioBase(BaseModel):
     puntuacion: float = 0
     profesor: ObjectId
     asignatura: ObjectId
-    semestre: str
+    semestre: tuple[int, int]
 
 class AsignaturasBase(Asignatura):
     codigo: int
