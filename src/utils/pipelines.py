@@ -61,10 +61,32 @@ def add_fields(
         }
     }]
 
-
+def unset(
+    field: str
+):
+    return [{
+        "$unset": field
+    }]
 
 
 LOOKUP_PIPE = []
 LOOKUP_PIPE.extend(lookup("asignatura", "asignaturas", "_id", "asignaturas_info",
                            pipeline = add_fields("id","$_id")))
 LOOKUP_PIPE.extend(add_fields("id", "$_id"))
+LOOKUP_PIPE.append({"$project": {
+        "_id": 0,
+        "asignaturas": 0,
+    }})
+
+NOTAS = []
+
+NOTAS.extend(lookup("asignatura", "asignatura", "_id", "asignaturas_info",
+                        [{"$addFields": {"id": "$_id"}},
+                        {"$project": {
+                            "_id":0
+                        }}]
+                        ))
+NOTAS.extend(unset("_id"))
+NOTAS.extend(unset("profesor"))
+NOTAS.extend(unset("asignatura"))
+NOTAS.extend(add_fields("id", "$_id"))

@@ -24,9 +24,9 @@ async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depend
     return asignatura
 
 @router.get('/list', response_model = rb.PaginacionAsignaturasBase)
-async def list_asignaturas(page: int = 0, limit: int = 10, name:str = ''):
+async def list_asignaturas(page: int = 0, limit: int = 10, name:str = '', facultad: FacultadesValidas = None):
     name = name.upper()
-    args = [Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*")]
+    args = [Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), Asignatura.facultades==facultad if facultad else {}]
     kwargs = {"skip":page*limit, "limit":limit}
     total = await Engine.count(*args)
     return {"contenido": await Engine.find(*args, **kwargs),
@@ -38,7 +38,7 @@ async def list_asignaturas(page: int = 0, limit: int = 10, name:str = ''):
 @router.get('/profes/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
 async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit:int = 10):
 
-    args = [Profesor, Profesor.asignaturas.in_([asignatura_id])]
+    args = [Profesor, Profesor.asignaturas==asignatura_id]
     kwargs = {"skip":page*limit, "limit":limit}
 
     total = await Engine.count(*args)
@@ -46,19 +46,3 @@ async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit:int
             "total": total,
             "pagina": page,
             "total_paginas": (total + limit - 1) // limit if limit > 0 else 1}
-
-@router.get('/facultad/{facultad}', response_model = rb.PaginacionAsignaturasBase)
-async def get_asignatura_facultad(facultad: FacultadesValidas, page: int = 0, limit: int = 10, name:str = ''):
-    name = name.upper()
-    
-    args = [Asignatura, Asignatura.nombre.match("[A-z0-9 ]*"+name+"[A-z0-9 ]*"), Asignatura.facultades == facultad]
-    kwargs = {"skip":page*limit, "limit":limit}
-    
-    total = await Engine.count(*args)
-
-    return {
-            "contenido": await Engine.find(*args, **kwargs),
-            "total": total,
-            "pagina": page,
-            "total_paginas": (total + limit - 1) // limit if limit > 0 else 1
-            }

@@ -7,7 +7,7 @@ from typing import Annotated
 from .auth import access
 from validations.Values import FacultadesValidas
 
-from utils.pipelines import paginacion, match, match_non_regex, LOOKUP_PIPE
+from utils.pipelines import paginacion, match, match_non_regex, lookup, add_fields, unset, LOOKUP_PIPE, NOTAS
 
 router = APIRouter(
     tags=["profesor"],
@@ -47,6 +47,7 @@ async def get_profesor(profesor_id: ObjectId):
     pipeline.extend(match_non_regex("_id", profesor_id))
     pipeline.extend(paginacion(0,1))
     pipeline.extend(LOOKUP_PIPE)
+    
 
     collection = Engine.get_collection(Profesor)
     profesor = await collection.aggregate(pipeline).to_list(length=None)
@@ -57,9 +58,15 @@ async def get_profesor(profesor_id: ObjectId):
 
 
 
-@router.get('/puntaje/{profesor_id}', response_model=list[Notas])
+@router.get('/puntaje/{profesor_id}', response_model=list[rb.NotasProcesadas])
 async def get_profesor(profesor_id: ObjectId):
-    response = await Engine.find(Notas, Notas.profesor==profesor_id)
+    pipeline = []
+    pipeline.extend(match_non_regex("profesor", profesor_id))
+    pipeline.extend(NOTAS)
+
+
+    collection = Engine.get_collection(Notas)
+    response = await collection.aggregate(pipeline).to_list(length=None)
     return response
 
 

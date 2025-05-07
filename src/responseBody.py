@@ -39,6 +39,11 @@ class Token(BaseModel):
 
 class AsignaturaTotal(AsignaturasBase):
     facultades: list[FacultadesValidas] = []
+
+
+class NotasProcesadas(BaseModel):
+    puntuaciones: list = []
+    asignaturas_info: list[AsignaturasBase] = []
 # Paginaciones
 
 class BasePaginacion(BaseModel):
