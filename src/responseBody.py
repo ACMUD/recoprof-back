@@ -2,10 +2,15 @@ from odmantic.bson import ObjectId
 from pydantic import BaseModel
 from validations.Values import FacultadesValidas
 
+class Puntuacion_prof(BaseModel):
+    valor: float = -1
+    semestre: tuple[int,int] = (2020,1)
+
 class ProfesorBase(BaseModel):
     id: ObjectId
     nombre: str
     facultades: list[FacultadesValidas]
+    puntuacion: Puntuacion_prof = Puntuacion_prof()
 
 class Asignatura(BaseModel):
     id: ObjectId
