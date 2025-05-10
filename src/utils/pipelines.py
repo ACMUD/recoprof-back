@@ -1,8 +1,4 @@
 import re
-from db.models import Profesor
-
-import re
-from db.models import Profesor
 
 
 def paginacion(
