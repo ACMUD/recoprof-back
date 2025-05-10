@@ -24,10 +24,15 @@ class Notas(Model):
         ]
     } 
 
+class Puntuacion_prof(EmbeddedModel):
+    valor: float = -1
+    semestre: tuple[int,int] = (2020,1)
+
 class Profesor(Model):
     nombre: str
     facultades: list[FacultadesValidas] = []
     asignaturas: list[ObjectId] = []
+    puntuacion: Puntuacion_prof = Puntuacion_prof()
     
     model_config = {
         "indexes": lambda: [
