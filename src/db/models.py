@@ -36,7 +36,8 @@ class Profesor(Model):
     
     model_config = {
         "indexes": lambda: [
-            Index(Profesor.nombre, name="profesor_nombre")
+            Index(Profesor.nombre, name="profesor_nombre"),
+            Index(Profesor.puntuacion.valor, name="profesor_puntuacion")
         ]
     }
 
