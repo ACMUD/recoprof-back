@@ -1,0 +1,1 @@
+from .profesor_repository import ProfesorRepository
