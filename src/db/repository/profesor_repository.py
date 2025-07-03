@@ -1,11 +1,17 @@
 from odmantic import AIOEngine
-from db.models import Profesor, Notas, Asignatura
-from db.pipelines import paginacion, match, LOOKUP_PIPE, NOTAS
+from db.models import Profesor, Notas
+from db.pipelines import paginacion, match, LOOKUP_PIPE, NOTAS, NOTAS_PROMEDIO
 from validations.Values import FacultadesValidas
 
 class ProfesorRepository:
     def __init__(self, engine: AIOEngine):
         self.engine = engine
+
+    async def get_profesor(self, profesor_id):
+        """
+        Obtiene la entidad Profesor por su ID.
+        """
+        return await self.engine.find_one(Profesor, Profesor.id == profesor_id)
 
     async def get_profesor_by_id(self, profesor_id):
         pipeline = []
@@ -60,3 +66,12 @@ class ProfesorRepository:
         collection = self.engine.get_collection(Notas)
         response = await collection.aggregate(pipeline).to_list(length=None)
         return response
+
+    async def get_promedio(self, profesor_id):
+        pipeline = []
+        pipeline.extend(match("profesor", profesor_id, False))
+        pipeline.extend(NOTAS_PROMEDIO)
+        
+        collection = self.engine.get_collection(Notas)
+        
+        return await collection.aggregate(pipeline).to_list(length=None)
