@@ -6,6 +6,10 @@ from validations.Values import FacultadesValidas
 class AsignaturasRepository:
     def __init__(self, engine: AIOEngine):
         self.engine = engine
+    
+    async def get_asignatura_by_code(self, asignatura_code: str) -> Asignatura:
+        asignatura = await self.engine.find_one(Asignatura, Asignatura.codigo == asignatura_code)
+        return asignatura
 
     async def create_asignatura(self, asignatura: Asignatura) -> Asignatura:
         asignatura.nombre = asignatura.nombre.upper()
