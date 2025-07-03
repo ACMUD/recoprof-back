@@ -1,6 +1,5 @@
 import re
 
-
 def paginacion(
     page: int = 0,
     limit: int = 10
@@ -12,21 +11,12 @@ def paginacion(
 
 def match(
     field: str,
-    value: str
+    value: str,
+    regex: bool = True
 ):
     return [{
         "$match": {
-            field: { "$regex": re.compile(f".*{re.escape(value)}.*", re.IGNORECASE) }
-        }
-    }]
-
-def match_non_regex(
-    field: str,
-    value: str
-):
-    return [{
-        "$match": {
-            field: value
+            field: ({ "$regex": re.compile(f".*{re.escape(value)}.*", re.IGNORECASE) } if regex else value)
         }
     }]
 

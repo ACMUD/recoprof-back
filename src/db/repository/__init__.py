@@ -1,0 +1,4 @@
+from .profesor_repository import ProfesorRepository
+from .asignaturas_repository import AsignaturasRepository
+from .notas_repository import NotasRepository
+from .comentarios_repository import ComentarioRepository

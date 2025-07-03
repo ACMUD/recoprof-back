@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import admin, profs, comentarios, asignaturas, auth
+from routers import profs, admin, auth, asignaturas, comentarios
 
 
 app = FastAPI()

@@ -1,11 +1,12 @@
-from db.engine import Engine
+from db.engine import engine
 from db.models import dbconfig, Asignatura, Profesor
 from validations.Values import FacultadesValidas
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from typing import Annotated
-from .auth import access
+from dependencies.auth_dep import access
 
 from utils.pdfextract import pdfextract
+from dependencies.repository_access import get_asignaturas_repository, get_profesor_repository
 
 router = APIRouter(
     tags=["Admin"],
@@ -19,10 +20,10 @@ async def configure(acc: Annotated[bool, Depends(access)]):
     """
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    await Engine.configure_database(dbconfig,update_existing_indexes=True)
+    await engine.configure_database(dbconfig,update_existing_indexes=True)
 
 @router.post('/materias')
-async def materias(facultad:FacultadesValidas = Form(), file: UploadFile = File(...), acc: bool = Depends(access)):
+async def materias(facultad:FacultadesValidas = Form(), file: UploadFile = File(...), acc: bool = Depends(access), repo_asignaturas = Depends(get_asignaturas_repository), repo_profesores = Depends(get_profesor_repository)):
     """
     Utilidad para insertar materias a partir de un documento pdf con dichas materias
     PDF;
@@ -33,21 +34,26 @@ async def materias(facultad:FacultadesValidas = Form(), file: UploadFile = File(
     ids = {}
 
     for materia in materias:
-        mat_db = await Engine.find_one(Asignatura, Asignatura.codigo == materia[0])
+        mat_db = await repo_asignaturas.get_asignatura_by_code(materia[0])
         if not mat_db:
             mat_db = Asignatura(codigo=materia[0], nombre=materia[1])
-        
+
         mat_db.facultades = list(set(mat_db.facultades + [facultad]))
-        
-        mat_db = await Engine.save(mat_db)
+
+        mat_db = await repo_asignaturas.create_asignatura(mat_db)
         ids[materia[0]]=mat_db.id
 
     for p in profs:
-        prof_db = await Engine.find_one(Profesor, Profesor.nombre == p)
+        prof_db = await repo_profesores.get_profesor_list(name = p, limit=1)
+        if len(prof_db) > 0:
+            prof_db = prof_db[0] if isinstance(prof_db, list) else prof_db
+            prof_db = Profesor(**prof_db)
+        else:
+            prof_db = None
         if prof_db is None:
             prof_db = Profesor(nombre=p)
 
         prof_db.asignaturas = list(set(prof_db.asignaturas+[ids[i] for i in profs[p]]))
         prof_db.facultades = list(set(prof_db.facultades + [facultad]))
-        await Engine.save(prof_db)
+        await repo_profesores.create_profesor(prof_db)
     return materias
