@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from routers import profs, admin, auth, asignaturas, comentarios
 from db.engine import init_db, close_db
+import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -52,3 +53,21 @@ app.include_router(auth)
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        reload_excludes=[
+            ".git/",
+            "__pycache__/",
+            ".pyc",
+            ".pytest_cache/",
+            ".vscode/",
+            ".idea/"
+        ],
+        reload_delay=1,
+        reload_includes=[".py", ".html", ".css", "*.js"]
+    )

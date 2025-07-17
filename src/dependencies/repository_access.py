@@ -2,7 +2,7 @@ from db.engine import get_engine, init_db
 from db.repository.profesor_repository import ProfesorRepository
 from db.repository.asignaturas_repository import AsignaturasRepository
 from db.repository.notas_repository import NotasRepository
-from db.repository.comentarios_repository import ComentariosRepository
+from db.repository.comentarios_repository import ComentarioRepository
 
 async def get_database_engine():
     """
@@ -30,4 +30,4 @@ async def get_notas_repository():
 
 async def get_comentarios_repository():
     engine = await get_database_engine()
-    return ComentariosRepository(engine)
+    return ComentarioRepository(engine)

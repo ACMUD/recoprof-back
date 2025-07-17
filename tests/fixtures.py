@@ -1,6 +1,6 @@
 from db.repository.profesor_repository import ProfesorRepository
 from db.repository.asignaturas_repository import AsignaturasRepository
-from db.repository.comentarios_repository import ComentariosRepository
+from db.repository.comentarios_repository import ComentarioRepository
 from db.repository.notas_repository import NotasRepository
 from services.comments_service import CommentsService
 from odmantic import ObjectId
@@ -60,7 +60,7 @@ async def notas_repo():
 @pytest_asyncio.fixture
 async def comentario_repo():
     async with get_engine_context() as engine:
-        return ComentariosRepository(engine)
+        return ComentarioRepository(engine)
     
 @pytest_asyncio.fixture
 async def comentario_servicio():

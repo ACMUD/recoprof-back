@@ -1,13 +1,13 @@
 from db.repository.profesor_repository import ProfesorRepository
-from db.repository.comentarios_repository import ComentariosRepository
+from db.repository.comentarios_repository import ComentarioRepository
 from db.repository.notas_repository import NotasRepository
 from db.models import Notas, Puntuacion
 
 class CommentsService:
-    def __init__(self, comentarios_repo: ComentariosRepository, engine=None):
+    def __init__(self, comentarios_repo: ComentarioRepository, engine=None):
         if engine is not None:
             # Modo legacy para compatibilidad
-            self.repo_comentario = ComentariosRepository(engine)
+            self.repo_comentario = ComentarioRepository(engine)
             self.repo_notas = NotasRepository(engine)
             self.repo_profesor = ProfesorRepository(engine)
         else:
