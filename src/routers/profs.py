@@ -37,7 +37,7 @@ async def get_profesor(profesor_id: ObjectId, repo = Depends(get_profesor_reposi
     return profesor
 
 @router.get('/puntaje/{profesor_id}', response_model=list[rb.NotasProcesadas])
-async def get_profesor(profesor_id: ObjectId, repo = Depends(get_profesor_repository)):
+async def get_profesor_score(profesor_id: ObjectId, repo = Depends(get_profesor_repository)):
     response = await repo.get_profesor_score(profesor_id)
     return response
 

@@ -1,5 +1,7 @@
-from db.engine import engine
-from services.comments_service import Comments_service
+from db.engine import get_database_engine
+from services.comments_service import CommentsService
 
-def get_comments_service():
-    return Comments_service(engine)
+async def get_comments_service():
+    engine = await get_database_engine()
+    # Usar modo legacy con engine por simplicidad
+    return CommentsService(comentarios_repo=None, engine=engine)
