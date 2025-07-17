@@ -48,10 +48,4 @@ async def get_engine_context():
     try:
         yield engine
     finally:
-        try:
-            client.close()
-        except Exception:
-            pass  # Ignorar errores al cerrar
-
-# Mantener compatibilidad con el código existente
-engine = None  # Se inicializará dinámicamente
+        pass

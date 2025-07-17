@@ -1,4 +1,4 @@
-from db.engine import get_engine, init_db
+from db.engine import get_engine, init_db, get_engine_context
 from db.repository.profesor_repository import ProfesorRepository
 from db.repository.asignaturas_repository import AsignaturasRepository
 from db.repository.notas_repository import NotasRepository
@@ -17,17 +17,17 @@ async def get_database_engine():
         return get_engine()
 
 async def get_profesor_repository():
-    engine = await get_database_engine()
-    return ProfesorRepository(engine)
+    async with get_engine_context() as engine:
+        return ProfesorRepository(engine)
 
 async def get_asignaturas_repository():
-    engine = await get_database_engine()
-    return AsignaturasRepository(engine)
+    async with get_engine_context() as engine:
+        return AsignaturasRepository(engine)
 
 async def get_notas_repository():
-    engine = await get_database_engine()
-    return NotasRepository(engine)
+    async with get_engine_context() as engine:
+        return NotasRepository(engine)
 
 async def get_comentarios_repository():
-    engine = await get_database_engine()
-    return ComentarioRepository(engine)
+    async with get_engine_context() as engine:
+        return ComentarioRepository(engine)
