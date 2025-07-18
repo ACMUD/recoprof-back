@@ -5,8 +5,10 @@ from contextlib import asynccontextmanager
 import os
 import asyncio
 from typing import Optional
+from dotenv import load_dotenv
+load_dotenv()
 
-uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
+uri: str = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
 
 # Variable global para almacenar el engine actual
 _engine: Optional[AIOEngine] = None
@@ -43,8 +45,8 @@ async def get_engine_context():
     Context manager para pruebas y casos especiales.
     Crea una conexión temporal que se cierra automáticamente.
     """
-    client = AsyncIOMotorClient(uri)
-    engine = AIOEngine(client, database="recoprof")
+    client: AsyncIOMotorClient = AsyncIOMotorClient(uri)
+    engine: AIOEngine = AIOEngine(client, database="recoprof")
     try:
         yield engine
     finally:
