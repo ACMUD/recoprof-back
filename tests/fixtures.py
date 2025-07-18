@@ -46,27 +46,27 @@ async def notas_test(clean_engine, profesor_test, asignatura_test):
 async def profe_repo():
     async with get_engine_context() as engine:
         return ProfesorRepository(engine)
-    
+
 @pytest_asyncio.fixture
 async def asignatura_repo():
     async with get_engine_context() as engine:
         return AsignaturasRepository(engine)
-    
+
 @pytest_asyncio.fixture
 async def notas_repo():
     async with get_engine_context() as engine:
         return NotasRepository(engine)
-    
+
 @pytest_asyncio.fixture
 async def comentario_repo():
     async with get_engine_context() as engine:
         return ComentarioRepository(engine)
-    
+
 @pytest_asyncio.fixture
 async def comentario_servicio():
     async with get_engine_context() as engine:
         return CommentsService(comentarios_repo=None, engine=engine)
-    
+
 @pytest.fixture
 def profesor1_mock():
     return Profesor(**{

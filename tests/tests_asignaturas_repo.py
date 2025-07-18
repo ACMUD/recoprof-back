@@ -27,4 +27,3 @@ async def test_asignatura_profesores(asignatura_repo, asignatura_mock):
 
     logging.info(f"Profesores de la asignatura: {data}")
     logging.info(f"Total profesores de la asignatura: {count}")
-    

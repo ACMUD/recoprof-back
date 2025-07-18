@@ -23,9 +23,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Failed to initialize database: {e}")
         # En serverless, es mejor continuar y manejar errores por endpoint
-    
+
     yield
-    
+
     # Shutdown
     try:
         await close_db()

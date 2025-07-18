@@ -22,7 +22,7 @@ async def test_get_comment(comentario_servicio, comentario_mock):
 async def test_delete_comment(comentario_servicio, comentario_mock):
     result = await comentario_servicio.delete_comment(comentario_mock.id)
     logging.info(f"Delete comment result: {result}")
-    
+
     # Verify deletion
     data = await comentario_servicio.get_comentario(comentario_mock.id)
     assert data is None

@@ -22,7 +22,7 @@ async def test_get_nota(notas_repo, nota_mock):
 async def test_delete_nota(notas_repo, nota_mock):
     value = await notas_repo.delete_notas(nota_mock.id)
     logging.info(f"Deleted nota: {value}")
-    
+
     # Verify deletion
     data = await notas_repo.get_notas(nota_mock.asignatura, nota_mock.profesor)
     assert data is None

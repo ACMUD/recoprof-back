@@ -101,20 +101,20 @@ NOTAS_PROMEDIO = [
         '$unwind': '$puntuaciones'
     }, {
         '$group': {
-            '_id': '$puntuaciones.semestre', 
+            '_id': '$puntuaciones.semestre',
             'valor': {
                 '$avg': '$puntuaciones.valor'
             }
         }
     }, {
         '$project': {
-            '_id': 0, 
-            'valor': 1, 
+            '_id': 0,
+            'valor': 1,
             'year': {
                 '$arrayElemAt': [
                     '$_id', 0
                 ]
-            }, 
+            },
             'semestre': {
                 '$arrayElemAt': [
                     '$_id', 1
@@ -123,14 +123,14 @@ NOTAS_PROMEDIO = [
         }
     }, {
         '$sort': {
-            'year': 1, 
+            'year': 1,
             'semestre': 1
         }
     }, {
         '$limit': 1
     }, {
         '$project': {
-            'valor': 1, 
+            'valor': 1,
             'semestre': [
                 '$year', '$semestre'
             ]

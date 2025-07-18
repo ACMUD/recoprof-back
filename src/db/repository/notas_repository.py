@@ -8,10 +8,10 @@ class NotasRepository:
 
     async def get_notas(self, asignatura: ObjectId, profesor_id: ObjectId)->Notas:
         return await self.engine.find_one(Notas, Notas.asignatura == asignatura, Notas.profesor == profesor_id)
-    
+
     async def save_notas(self, notas: Notas) -> Notas:
         return await self.engine.save(notas)
-    
+
     async def delete_notas(self, notas_id: ObjectId) -> bool:
         try:
             await self.engine.remove(Notas, notas_id==Notas.id)

@@ -1,3 +1,4 @@
+from pydantic.v1.main import BaseModel
 from odmantic import Model, Index, EmbeddedModel
 from typing_extensions import Self
 from odmantic.bson import ObjectId
@@ -22,7 +23,7 @@ class Notas(Model):
             Index(Notas.asignatura, name="notas asignatura"),
             Index(Notas.asignatura, Notas.profesor, name="notas asignatura profesor")
         ]
-    } 
+    }
 
 class Puntuacion_prof(EmbeddedModel):
     valor: float = -1
@@ -33,7 +34,7 @@ class Profesor(Model):
     facultades: list[FacultadesValidas] = []
     asignaturas: list[ObjectId] = []
     puntuacion: Puntuacion_prof = Puntuacion_prof()
-    
+
     model_config = {
         "indexes": lambda: [
             Index(Profesor.nombre, name="profesor_nombre"),
@@ -41,7 +42,7 @@ class Profesor(Model):
         ]
     }
 
-    
+
 class Asignatura(Model):
     nombre: str
     codigo: int
@@ -59,6 +60,8 @@ class Comentario(Model):
     profesor: ObjectId
     asignatura: ObjectId
     semestre: tuple[int,int]
+    valoraciones_positivas: int = 0
+    valoraciones_negativas: int = 0
 
     model_config = {
         "indexes": lambda: [
@@ -72,6 +75,6 @@ class Comentario(Model):
         if 0 > self.puntuacion or self.puntuacion >5:
             raise ValueError("Puntuación debe estar entre 0 y 5")
         return self
-    
 
-dbconfig = [Profesor, Asignatura, Comentario, Notas]
+
+dbconfig: list = [Profesor, Asignatura, Comentario, Notas]
