@@ -31,7 +31,14 @@ async def list_asignaturas(page: int = 0, limit: int = 10, name:str = '', facult
             "total_paginas" : (total + limit - 1) // limit if limit > 0 else 1
             }
 
-@router.get('/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
+@router.get('/{asignatura_id}', response_model=Asignatura)
+async def get_asignatura_by_id(asignatura_id: ObjectId, repo= Depends(get_asignaturas_repository)):
+    asignatura = await repo.get_asignatura_by_id(asignatura_id)
+    if not asignatura:
+        raise HTTPException(status_code=404, detail="Asignatura not found")
+    return asignatura
+
+@router.get('/profesores/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
 async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit:int = 10, repo= Depends(get_asignaturas_repository)):
     contenido = await repo.get_asignatura_profs(asignatura_id, page, limit)
     total = await repo.count_asignatura_profs(asignatura_id)
