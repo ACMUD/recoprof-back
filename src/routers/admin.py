@@ -1,4 +1,5 @@
-from dependencies.repository_access import get_database_engine, get_asignaturas_repository, get_profesor_repository
+from dependencies.repository_access import get_asignaturas_repository, get_profesor_repository
+from db.engine import get_engine_context
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from db.models import dbconfig, Asignatura, Profesor
 from validations.Values import FacultadesValidas
@@ -12,21 +13,22 @@ router = APIRouter(
 )
 
 @router.post('/configure')
-async def configure(acc: Annotated[bool, Depends(access)], engine=Depends(get_database_engine)):
+async def configure(acc: Annotated[bool, Depends(access)], db=Depends(get_engine_context)):
     """
     Utilidad para configurar la base de datos
     """
-    if not acc:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    await engine.configure_database(dbconfig, update_existing_indexes=True)
-    return {"message": "Database configured successfully"}
+    async with db as engine:
+        if not acc:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        await engine.configure_database(dbconfig, update_existing_indexes=True)
+        return {"message": "Database configured successfully"}
 
 @router.post('/materias')
 async def materias(
-    facultad: FacultadesValidas = Form(), 
-    file: UploadFile = File(...), 
-    acc: bool = Depends(access), 
-    repo_asignaturas = Depends(get_asignaturas_repository), 
+    facultad: FacultadesValidas = Form(),
+    file: UploadFile = File(...),
+    acc: bool = Depends(access),
+    repo_asignaturas = Depends(get_asignaturas_repository),
     repo_profesores = Depends(get_profesor_repository)
 ):
     """
@@ -36,7 +38,7 @@ async def materias(
     """
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
+
     materias, profs = await pdfextract(file.file)
 
     ids = {}
@@ -64,5 +66,5 @@ async def materias(
         prof_db.asignaturas = list(set(prof_db.asignaturas + [ids[i] for i in profs[p]]))
         prof_db.facultades = list(set(prof_db.facultades + [facultad]))
         await repo_profesores.create_profesor(prof_db)
-    
+
     return {"materias": materias, "profesores": list(profs.keys()), "message": "Data imported successfully"}
