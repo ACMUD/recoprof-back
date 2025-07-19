@@ -22,7 +22,7 @@ async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depend
     return await repo.create_asignatura(asignatura)
 
 @router.get('/', response_model = rb.PaginacionAsignaturasBase)
-async def list_asignaturas(page: int = 0, limit: int = Query(10, le=20), name:str = '', facultad: Optional[FacultadesValidas] = None, repo= Depends(get_asignaturas_repository)):
+async def list_asignaturas(page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), name:str = '', facultad: Optional[FacultadesValidas] = None, repo= Depends(get_asignaturas_repository)):
     contenido = await repo.list_asignaturas(page, limit, name, facultad)
     total = await repo.count_asignaturas(name, facultad)
     return {"contenido": contenido,
@@ -39,7 +39,7 @@ async def get_asignatura_by_id(asignatura_id: ObjectId, repo= Depends(get_asigna
     return asignatura
 
 @router.get('/profesores/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
-async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit: int = Query(10, le=20), repo= Depends(get_asignaturas_repository)):
+async def get_asignatura_profs(asignatura_id: ObjectId, page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), repo= Depends(get_asignaturas_repository)):
     contenido = await repo.get_asignatura_profs(asignatura_id, page, limit)
     total = await repo.count_asignatura_profs(asignatura_id)
     return {"contenido": contenido,

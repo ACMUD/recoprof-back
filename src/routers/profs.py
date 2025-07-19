@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.get('/list', response_model = rb.PaginacionProfesor)
-async def list_profesores(page: int = 0, limit: int = Query(10, le=20), name:str = '', facultad: Optional[FacultadesValidas] = None, repo = Depends(get_profesor_repository)):
+async def list_profesores(page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), name:str = '', facultad: Optional[FacultadesValidas] = None, repo = Depends(get_profesor_repository)):
     name = name.upper()
 
     profesores = await repo.get_profesor_list(page, limit, name, facultad)
