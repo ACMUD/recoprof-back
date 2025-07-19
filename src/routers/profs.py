@@ -1,9 +1,9 @@
 from dependencies.repository_access import get_profesor_repository
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from odmantic import ObjectId
 from db.models import Profesor
 import responseBody as rb
-from typing import Annotated
+from typing import Annotated, Optional
 from .auth import access
 from validations.Values import FacultadesValidas
 
@@ -15,17 +15,16 @@ router = APIRouter(
 
 
 @router.get('/list', response_model = rb.PaginacionProfesor)
-async def list_profesores(page: int = 0, limit: int = 10, name:str = '', facultad: FacultadesValidas = None, repo = Depends(get_profesor_repository)):
+async def list_profesores(page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), name:str = '', facultad: Optional[FacultadesValidas] = None, repo = Depends(get_profesor_repository)):
     name = name.upper()
 
     profesores = await repo.get_profesor_list(page, limit, name, facultad)
     total = await repo.count_profesor_list(name, facultad)
-    
+
     return {"contenido":profesores,
             "total": total,
             "pagina": page,
             "total_paginas": (total + limit - 1) // limit if limit > 0 else 1}
-
 
 
 
@@ -37,7 +36,7 @@ async def get_profesor(profesor_id: ObjectId, repo = Depends(get_profesor_reposi
     return profesor
 
 @router.get('/puntaje/{profesor_id}', response_model=list[rb.NotasProcesadas])
-async def get_profesor(profesor_id: ObjectId, repo = Depends(get_profesor_repository)):
+async def get_profesor_score(profesor_id: ObjectId, repo = Depends(get_profesor_repository)):
     response = await repo.get_profesor_score(profesor_id)
     return response
 
@@ -47,7 +46,7 @@ async def get_profesor(profesor_id: ObjectId, repo = Depends(get_profesor_reposi
 async def create_profesor(profesor: Profesor, acc: Annotated[bool, Depends(access)], repo = Depends(get_profesor_repository)):
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
+
     profesor.nombre = profesor.nombre.upper()
     if not profesor.facultades:
         raise HTTPException(status_code=400, detail="Facultades cannot be empty")
@@ -59,10 +58,17 @@ async def create_profesor(profesor: Profesor, acc: Annotated[bool, Depends(acces
 async def delete_profesor(profesor_id: ObjectId, acc: Annotated[bool, Depends(access)], repo = Depends(get_profesor_repository)):
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
+
     result = await repo.delete_profesor(profesor_id)
     if not result:
         raise HTTPException(status_code=404, detail="Profesor not found")
-    
+
     return {"status": "ok", "message": "Profesor deleted successfully"}
-    
+
+
+@router.get("/promedios/{profesor_id}")
+async def get_profesor_promedios(profesor_id: ObjectId, repo = Depends(get_profesor_repository)):
+    response = await repo.get_promedio(profesor_id)
+    if not response:
+        raise HTTPException(status_code=404, detail="Profesor not found")
+    return response

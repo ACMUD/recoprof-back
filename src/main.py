@@ -3,11 +3,38 @@ load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from routers import profs, admin, auth, asignaturas, comentarios
+from db.engine import init_db, close_db
+import uvicorn
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Maneja el ciclo de vida de la aplicación FastAPI.
+    Inicializa la BD al inicio y la cierra al final.
+    Optimizado para entornos serverless.
+    """
+    # Startup
+    try:
+        await init_db()
+        print("Database initialized successfully")
+    except Exception as e:
+        print(f"Failed to initialize database: {e}")
+        # En serverless, es mejor continuar y manejar errores por endpoint
 
-app = FastAPI()
+    yield
+
+    # Shutdown
+    try:
+        await close_db()
+        print("Database connection closed")
+    except Exception as e:
+        print(f"Error closing database: {e}")
+        # En serverless, ignorar errores de cierre
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,3 +53,21 @@ app.include_router(auth)
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        reload_excludes=[
+            ".git/",
+            "__pycache__/",
+            ".pyc",
+            ".pytest_cache/",
+            ".vscode/",
+            ".idea/"
+        ],
+        reload_delay=1,
+        reload_includes=[".py", ".html", ".css", "*.js"]
+    )

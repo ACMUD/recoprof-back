@@ -33,6 +33,6 @@ async def test_delete_comentario(comentario_repo, comentario_mock):
     comentario_id = comentario_mock.id
     value = await comentario_repo.delete_comentario(comentario_id)
     logging.info(f"Deleted comentario: {value}")
-    
+
     # Verify deletion
     data = await comentario_repo.get_comentario(comentario_id)

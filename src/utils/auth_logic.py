@@ -15,9 +15,6 @@ async def validate_token(token: str):
     payload = {"admin": False}
     try:
         payload = jwt.decode(token, KEY, algorithms=[ALGORITHM])
+        return payload.get("admin", False)
     except InvalidTokenError:
         return None
-    except Exception as e:
-        print(e)
-    finally:
-        return payload.get("admin", False)

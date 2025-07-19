@@ -4,7 +4,7 @@ import pytest
 
 
 logging.basicConfig(level=logging.INFO)
-    
+
 
 @pytest.mark.asyncio
 async def test_create_profesor(profe_repo, profesor1_mock, profesor2_mock):
