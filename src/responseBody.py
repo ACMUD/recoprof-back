@@ -23,6 +23,8 @@ class ComentarioBase(BaseModel):
     profesor: ObjectId
     asignatura: ObjectId
     semestre: tuple[int, int]
+    up: int = 0
+    down: int = 0
 
 class AsignaturasBase(Asignatura):
     codigo: int
