@@ -14,4 +14,3 @@ async def access(token: Annotated[Token, Depends(oauth2_scheme)]):
     if not access_value:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
     return access_value
-

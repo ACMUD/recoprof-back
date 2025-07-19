@@ -1,67 +1,78 @@
+from odmantic import ObjectId
+from typing import Literal
 from db.repository.profesor_repository import ProfesorRepository
 from db.repository.comentarios_repository import ComentarioRepository
 from db.repository.notas_repository import NotasRepository
-from db.models import Notas, Puntuacion
+from db.models import Notas, Puntuacion, Comentario, Profesor, Puntuacion_prof
 
-class Comments_service:
-    def __init__(self, engine):
-        self.repo_comentario = ComentarioRepository(engine)
-        self.repo_notas = NotasRepository(engine)
-        self.repo_profesor = ProfesorRepository(engine)
-    
+class CommentsService:
+    def __init__(self, comentarios_repo: ComentarioRepository, repo_notas: NotasRepository, repo_profesor: ProfesorRepository) -> None:
+        self.repo_comentario = comentarios_repo
+        self.repo_notas = repo_notas
+        self.repo_profesor = repo_profesor
+
     async def get_comentario(self, comentario_id):
         return await self.repo_comentario.get_comentario(comentario_id)
-    
-    async def post_comment(self, comentario):
-        notas = await self.repo_notas.get_notas(comentario.asignatura, comentario.profesor)
-        profesor = await self.repo_profesor.get_profesor(comentario.profesor)
 
-        if not notas:
-            notas = Notas(asignatura=comentario.asignatura, profesor=comentario.profesor, puntuaciones=[])
-            profesor.asignaturas.append(comentario.asignatura)
+    async def post_comment(self, comentario: Comentario):
 
-        for p in notas.puntuaciones:
-            if p.semestre == comentario.semestre:
-                p.cantidad += 1
-                p.valor = (p.valor*(p.cantidad-1) + comentario.puntuacion)/p.cantidad
-                break
-        else:
-            
-            puntuacion = Puntuacion(cantidad=1, valor=comentario.puntuacion, semestre=comentario.semestre)
-            notas.puntuaciones.append(puntuacion)
+        profesor: Profesor | None = await self.repo_profesor.get_profesor(comentario.profesor)
+        if not profesor:
+            raise ValueError("Profesor not found")
+        if comentario.asignatura not in profesor.asignaturas:
+            raise ValueError("Profesor does not teach this subject")
 
-        await self.repo_notas.save_notas(notas)
-        await self.repo_comentario.create_comentario(comentario)
-        return True
-        
-    async def delete_comment(self, comment_id):
-        comment = await self.repo_comentario.get_comentario(comment_id)
+        comment: Comentario = await self.repo_comentario.save(comentario)
+
+        puntuacion: Puntuacion = Puntuacion(valor=comentario.puntuacion, cantidad = 1, semestre=comentario.semestre)
+
+        await self.update_profesor_score(profesor.id, comentario.asignatura, puntuacion)
+
+        puntaje: int = await self.repo_profesor.get_profesor_score(profesor.id)
+
+        profesor.puntuacion = Puntuacion_prof(valor=puntaje, semestre=(0,0))
+        await self.repo_profesor.save(profesor)
+        return comment
+
+    async def delete_comment(self, comment_id: ObjectId):
+        comment: Comentario | None = await self.repo_comentario.get_comentario(comment_id)
         if not comment:
-            return False
-        
-        notas = await self.repo_notas.get_notas(comment.asignatura, comment.profesor)
-        if not notas:
-            return False
-        
-        for p in notas.puntuaciones:
-            if p.semestre == comment.semestre:
-                p.cantidad -= 1
-                if p.cantidad > 0:
-                    p.valor = (p.valor*(p.cantidad+1) - comment.puntuacion)/p.cantidad
-                else:
-                    notas.puntuaciones.remove(p)
-                break
-
-        await self.repo_notas.save_notas(notas)
+            raise ValueError("Comment not found")
+        puntuacion: Puntuacion = Puntuacion(valor=-comment.puntuacion, cantidad=-1, semestre=comment.semestre)
+        await self.update_profesor_score(comment.profesor, comment.asignatura, puntuacion)
         return await self.repo_comentario.delete_comentario(comment_id)
 
-    async def update_profesor_score(self, profesor_id):
-        profesor = await self.repo_profesor.get_profesor(profesor_id)
-        try:
-            prom = await self.repo_profesor.get_promedio(profesor_id)
-            profesor.puntuacion = prom[0]
-        except Exception as e:
-            print('No fue posible actualizar el promedio', e)
+    async def update_profesor_score(self, profesor_id: ObjectId, asignatura_id: ObjectId, puntuacion: Puntuacion):
+        notas: Notas | None = await self.repo_notas.get_notas(asignatura_id, profesor_id)
+        if not notas:
+            notas = Notas(asignatura=asignatura_id, profesor=profesor_id, puntuaciones=[puntuacion])
+            return await self.repo_notas.save_notas(notas)
 
-        await self.repo_profesor.create_profesor(profesor)
-        return {"status": "ok"}
+        if puntuacion.semestre not in [p.semestre for p in notas.puntuaciones]:
+            notas.puntuaciones.append(puntuacion)
+            return await self.repo_notas.save_notas(notas)
+
+        for existing_puntuacion in notas.puntuaciones:
+            if existing_puntuacion.semestre == puntuacion.semestre:
+                existing_puntuacion.valor = (existing_puntuacion.valor*existing_puntuacion.cantidad + puntuacion.valor)
+                divisor: int = (existing_puntuacion.cantidad + puntuacion.cantidad)
+                if divisor > 0:
+                    existing_puntuacion.valor /= divisor
+                    existing_puntuacion.cantidad += puntuacion.cantidad
+                    break
+                notas.puntuaciones.remove(existing_puntuacion)
+
+        if len(notas.puntuaciones) == 0:
+            await self.repo_notas.delete_notas(notas.id)
+            return
+
+        return await self.repo_notas.save_notas(notas)
+
+    async def vote_comment(self, comment_id: ObjectId, vote: Literal["up", "down"])-> None:
+        """
+        Votes a comment, either up or down.
+        """
+        if vote not in ["up", "down"]:
+            raise ValueError("Invalid vote type")
+
+        return await self.repo_comentario.vote_comment(comment_id, vote)

@@ -12,8 +12,17 @@ dependencies = [
     "pypdf2>=3.0.1",
 ]
 
+[tool.pyrefly]
+project-includes = ["**/*"]
+project-excludes = ["**/*venv/**/*"]
+
 [dependency-groups]
 dev = [
+    "pre-commit>=4.2.0",
+    "pylint>=3.3.7",
+    "pyrefly>=0.24.2",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.0.0",
 ]
+
+[tool]

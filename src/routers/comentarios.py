@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from odmantic import ObjectId
 from db.models import Comentario
-from responseBody import ComentarioBase
-from typing import Annotated
+from responseBody import ComentarioBase, PaginacionComentario
+from schemas.comment_post import CommentPostSchema
+from services.comments_service import CommentsService
+from typing import Annotated, Literal
 from .auth import access
-from dependencies.repository_access import get_comentario_repository
+from dependencies.repository_access import get_comentarios_repository
 from dependencies.services_access import get_comments_service
 
 router = APIRouter(
@@ -12,26 +14,47 @@ router = APIRouter(
     prefix="/api/comment"
 )
 
-@router.get('/{profesor_id}', response_model=list[ComentarioBase])
-async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: int = 0, limit: int = 10, repo_comentario=Depends(get_comentario_repository)):
-    return await repo_comentario.get_comments_by_profesor(profesor_id, asignatura, page, limit)
+@router.get('/{profesor_id}', response_model=PaginacionComentario)
+async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), repo_comentario=Depends(get_comentarios_repository)):
+
+    count:int = await repo_comentario.count_comments_by_profesor(profesor_id, asignatura)
+
+    return {
+        "total": count,
+        "pagina": page,
+        "total_paginas": (count + limit - 1) // limit,
+        "contenido": await repo_comentario.get_comments_by_profesor(profesor_id, asignatura, page, limit)
+    }
 
 
 @router.post('/')
-async def create_comment(comentario: Comentario, comment_service = Depends(get_comments_service)):
+async def create_comment(comentario: CommentPostSchema, comment_service: CommentsService = Depends(get_comments_service)):
     """
-    Crea un commentario para un profesor, si la asignatura no existe, se crea una nueva, y asi mismo actualiza el promedio.
-    finalmente agrega el promedio al profesor.
+    Crea un commentario para un profesor, y actualiza el promedio.
     """
-    value = await comment_service.post_comment(comentario)
-    await comment_service.update_profesor_score(comentario.profesor)
+    comentario_post: Comentario = Comentario(**comentario.dict())
+    try:
+        value: Comentario = await comment_service.post_comment(comentario_post)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return value
+    #await comment_service.update_profesor_score(comentario.profesor)
+    #return value
 
 @router.delete('/{comment_id}')
 async def delete_comment(comment_id: ObjectId, acc: Annotated[bool, Depends(access)], comment_service = Depends(get_comments_service)):
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    comment = await comment_service.get_comentario(comment_id)
-    value = await comment_service.delete_comment(comment_id)
-    await comment_service.update_profesor_score(comment.profesor)
-    return value
+    try:
+        value = await comment_service.delete_comment(comment_id)
+        return value
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.post('/votes/{comment_id}')
+async def vote_comment(comment_id: ObjectId, vote: Literal["up", "down"], comment_service: CommentsService = Depends(get_comments_service)):
+    try:
+        value = await comment_service.vote_comment(comment_id, vote)
+        return value
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
