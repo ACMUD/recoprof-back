@@ -1,6 +1,6 @@
 from odmantic import AIOEngine, ObjectId
 from db.models import Comentario
-from typing import Optional
+from typing import Optional, Literal
 
 class ComentarioRepository:
     def __init__(self, engine: AIOEngine):
@@ -40,3 +40,19 @@ class ComentarioRepository:
         if semestre:
             query.append(Comentario.asignatura== semestre)
         return await self.engine.count(Comentario, *query)
+
+    async def vote_comment(self, comment_id: ObjectId, vote: Literal["up", "down"])-> None:
+        """
+        Votes a comment, either up or down.
+        """
+        comment: Comentario | None = await self.engine.find_one(Comentario, Comentario.id == comment_id)
+
+        if not comment:
+            raise ValueError("Comment not found")
+
+        if vote == "up":
+            comment.up += 1
+        elif vote == "down":
+            comment.down += 1
+
+        await self.engine.save(comment)

@@ -60,8 +60,8 @@ class Comentario(Model):
     profesor: ObjectId
     asignatura: ObjectId
     semestre: tuple[int,int]
-    valoraciones_positivas: int = 0
-    valoraciones_negativas: int = 0
+    up: int = 0
+    down: int = 0
 
     model_config = {
         "indexes": lambda: [

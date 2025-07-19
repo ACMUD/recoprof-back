@@ -1,4 +1,5 @@
 from odmantic import ObjectId
+from typing import Literal
 from db.repository.profesor_repository import ProfesorRepository
 from db.repository.comentarios_repository import ComentarioRepository
 from db.repository.notas_repository import NotasRepository
@@ -66,3 +67,12 @@ class CommentsService:
             return
 
         return await self.repo_notas.save_notas(notas)
+
+    async def vote_comment(self, comment_id: ObjectId, vote: Literal["up", "down"])-> None:
+        """
+        Votes a comment, either up or down.
+        """
+        if vote not in ["up", "down"]:
+            raise ValueError("Invalid vote type")
+
+        return await self.repo_comentario.vote_comment(comment_id, vote)

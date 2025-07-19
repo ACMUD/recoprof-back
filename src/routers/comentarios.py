@@ -4,7 +4,7 @@ from db.models import Comentario
 from responseBody import ComentarioBase
 from schemas.comment_post import CommentPostSchema
 from services.comments_service import CommentsService
-from typing import Annotated
+from typing import Annotated, Literal
 from .auth import access
 from dependencies.repository_access import get_comentarios_repository
 from dependencies.services_access import get_comments_service
@@ -39,6 +39,14 @@ async def delete_comment(comment_id: ObjectId, acc: Annotated[bool, Depends(acce
         raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         value = await comment_service.delete_comment(comment_id)
+        return value
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.post('/votes/{comment_id}')
+async def vote_comment(comment_id: ObjectId, vote: Literal["up", "down"], comment_service: CommentsService = Depends(get_comments_service)):
+    try:
+        value = await comment_service.vote_comment(comment_id, vote)
         return value
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
