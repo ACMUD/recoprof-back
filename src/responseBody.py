@@ -16,13 +16,20 @@ class Asignatura(BaseModel):
     id: ObjectId
     nombre: str
 
-class ComentarioBase(BaseModel):
+class _ComentarioBase(BaseModel):
     id: ObjectId
     comentario: str
     puntuacion: float = 0
     profesor: ObjectId
-    asignatura: ObjectId
     semestre: tuple[int, int]
+    up: int = 0
+    down: int = 0
+
+class ComentarioBase(_ComentarioBase):
+    asignatura: ObjectId
+
+class Comentario(_ComentarioBase):
+    asignatura_info: Asignatura
 
 class AsignaturasBase(Asignatura):
     codigo: int
@@ -56,3 +63,6 @@ class PaginacionAsignaturasBase(BasePaginacion):
 
 class PaginacionProfesor(BasePaginacion):
     contenido: list[ProfesorConAsignatura]
+
+class PaginacionComentario(BasePaginacion):
+    contenido: list[Comentario]

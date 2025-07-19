@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from db.models import Asignatura
-from typing import Annotated
+from typing import Annotated, Optional
 from odmantic.bson import ObjectId
 from dependencies.auth_dep import access
 from dependencies.repository_access import get_asignaturas_repository
@@ -22,7 +22,7 @@ async def create_asisgnatura(asignatura: Asignatura, acc: Annotated[bool, Depend
     return await repo.create_asignatura(asignatura)
 
 @router.get('/', response_model = rb.PaginacionAsignaturasBase)
-async def list_asignaturas(page: int = 0, limit: int = 10, name:str = '', facultad: FacultadesValidas = None, repo= Depends(get_asignaturas_repository)):
+async def list_asignaturas(page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), name:str = '', facultad: Optional[FacultadesValidas] = None, repo= Depends(get_asignaturas_repository)):
     contenido = await repo.list_asignaturas(page, limit, name, facultad)
     total = await repo.count_asignaturas(name, facultad)
     return {"contenido": contenido,
@@ -31,8 +31,15 @@ async def list_asignaturas(page: int = 0, limit: int = 10, name:str = '', facult
             "total_paginas" : (total + limit - 1) // limit if limit > 0 else 1
             }
 
-@router.get('/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
-async def get_asignatura_profs(asignatura_id: ObjectId, page: int = 0, limit:int = 10, repo= Depends(get_asignaturas_repository)):
+@router.get('/{asignatura_id}', response_model=Asignatura)
+async def get_asignatura_by_id(asignatura_id: ObjectId, repo= Depends(get_asignaturas_repository)):
+    asignatura = await repo.get_asignatura_by_id(asignatura_id)
+    if not asignatura:
+        raise HTTPException(status_code=404, detail="Asignatura not found")
+    return asignatura
+
+@router.get('/profesores/{asignatura_id}', response_model=rb.PaginacionProfesorBase)
+async def get_asignatura_profs(asignatura_id: ObjectId, page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), repo= Depends(get_asignaturas_repository)):
     contenido = await repo.get_asignatura_profs(asignatura_id, page, limit)
     total = await repo.count_asignatura_profs(asignatura_id)
     return {"contenido": contenido,
