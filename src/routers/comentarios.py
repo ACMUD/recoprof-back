@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from odmantic import ObjectId
 from db.models import Comentario
 from responseBody import ComentarioBase
+from schemas.comment_post import CommentPostSchema
+from services.comments_service import CommentsService
 from typing import Annotated
 from .auth import access
 from dependencies.repository_access import get_comentarios_repository
@@ -18,20 +20,25 @@ async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: in
 
 
 @router.post('/')
-async def create_comment(comentario: Comentario, comment_service = Depends(get_comments_service)):
+async def create_comment(comentario: CommentPostSchema, comment_service: CommentsService = Depends(get_comments_service)):
     """
-    Crea un commentario para un profesor, si la asignatura no existe, se crea una nueva, y asi mismo actualiza el promedio.
-    finalmente agrega el promedio al profesor.
+    Crea un commentario para un profesor, y actualiza el promedio.
     """
-    value = await comment_service.post_comment(comentario)
-    await comment_service.update_profesor_score(comentario.profesor)
+    comentario_post: Comentario = Comentario(**comentario.dict())
+    try:
+        value: Comentario = await comment_service.post_comment(comentario_post)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return value
+    #await comment_service.update_profesor_score(comentario.profesor)
+    #return value
 
 @router.delete('/{comment_id}')
 async def delete_comment(comment_id: ObjectId, acc: Annotated[bool, Depends(access)], comment_service = Depends(get_comments_service)):
     if not acc:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    comment = await comment_service.get_comentario(comment_id)
-    value = await comment_service.delete_comment(comment_id)
-    await comment_service.update_profesor_score(comment.profesor)
-    return value
+    try:
+        value = await comment_service.delete_comment(comment_id)
+        return value
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

@@ -4,7 +4,7 @@ from db.repository.profesor_repository import ProfesorRepository
 from db.repository.comentarios_repository import ComentarioRepository
 from db.repository.notas_repository import NotasRepository
 
-async def get_comments_service():
+async def get_comments_service() -> CommentsService:
     async with get_engine_context() as engine:
         comentarios_repo: ComentarioRepository = ComentarioRepository(engine)
         repo_notas: NotasRepository = NotasRepository(engine)
