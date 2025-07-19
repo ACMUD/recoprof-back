@@ -72,7 +72,7 @@ def sort(
     }]
 
 
-LOOKUP_PIPE = []
+LOOKUP_PIPE: list[dict] = []
 LOOKUP_PIPE.extend(sort("puntuacion.valor", -1))
 LOOKUP_PIPE.extend(lookup("asignatura", "asignaturas", "_id", "asignaturas_info",
                            pipeline = add_fields("id","$_id")))
@@ -82,7 +82,7 @@ LOOKUP_PIPE.append({"$project": {
         "asignaturas": 0,
     }})
 
-NOTAS = []
+NOTAS: list[dict] = []
 
 NOTAS.extend(lookup("asignatura", "asignatura", "_id", "asignaturas_info",
                         [{"$addFields": {"id": "$_id"}},
@@ -96,44 +96,32 @@ NOTAS.extend(unset("asignatura"))
 NOTAS.extend(add_fields("id", "$_id"))
 
 
-NOTAS_PROMEDIO = [
- {
-        '$unwind': '$puntuaciones'
-    }, {
+NOTAS_PROMEDIO:list[dict] = []
+NOTAS_PROMEDIO. extend(unwind("$puntuaciones"))
+NOTAS_PROMEDIO. extend([
+    {
         '$group': {
             '_id': '$puntuaciones.semestre',
-            'valor': {
+            'promedio': {
                 '$avg': '$puntuaciones.valor'
             }
         }
     }, {
-        '$project': {
-            '_id': 0,
-            'valor': 1,
-            'year': {
-                '$arrayElemAt': [
-                    '$_id', 0
-                ]
-            },
-            'semestre': {
-                '$arrayElemAt': [
-                    '$_id', 1
-                ]
-            }
-        }
-    }, {
         '$sort': {
-            'year': 1,
-            'semestre': 1
-        }
-    }, {
-        '$limit': 1
-    }, {
-        '$project': {
-            'valor': 1,
-            'semestre': [
-                '$year', '$semestre'
-            ]
+            '_id.0': 1,
+            '_id.1': 1
         }
     }
-]
+])
+
+PROMEDIO_GLOBAL: list[dict] = []
+PROMEDIO_GLOBAL.extend(unwind("$puntuaciones"))
+PROMEDIO_GLOBAL.extend([{
+        '$group': {
+            '_id': '$profesor',
+            'promedio': {
+                '$avg': '$puntuaciones.valor'
+            }
+        }
+    }])
+PROMEDIO_GLOBAL.extend(unset("_id"))

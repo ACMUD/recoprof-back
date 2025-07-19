@@ -1,6 +1,6 @@
 from odmantic import AIOEngine
 from db.models import Profesor, Notas
-from db.pipelines import paginacion, match, LOOKUP_PIPE, NOTAS, NOTAS_PROMEDIO
+from db.pipelines import paginacion, match, LOOKUP_PIPE, NOTAS, NOTAS_PROMEDIO, PROMEDIO_GLOBAL
 from validations.Values import FacultadesValidas
 from typing import Optional
 
@@ -51,6 +51,12 @@ class ProfesorRepository:
         profesor.nombre = profesor.nombre.upper()
         return await self.engine.save(profesor)
 
+    async def save(self, profesor: Profesor):
+        """
+        Funcion atajo para guardar un profesor
+        """
+        return await self.engine.save(profesor)
+
     async def update_profesor(self, profesor: Profesor):
         if not profesor.id:
             raise ValueError("Profesor ID is required for update")
@@ -71,16 +77,24 @@ class ProfesorRepository:
         except:
             return False
 
-    async def get_profesor_score(self, profesor_id):
+    async def get_profesor_score(self, profesor_id) -> int:
+        """
+        Retorna el promedio de todas las notas dadas al profesor.
+        """
         pipeline = []
         pipeline.extend(match("profesor", profesor_id, regex=False))
-        pipeline.extend(NOTAS)
+        pipeline.extend(PROMEDIO_GLOBAL)
 
         collection = self.engine.get_collection(Notas)
         response = await collection.aggregate(pipeline).to_list(length=None)
-        return response
+        if len(response) == 0:
+            return -1
+        return response[0]["promedio"]
 
-    async def get_promedio(self, profesor_id):
+    async def get_promedio(self, profesor_id) -> list:
+        """
+        Retorna el promedio de todas las notas dadas al profesor por semestre.
+        """
         pipeline = []
         pipeline.extend(match("profesor", profesor_id, False))
         pipeline.extend(NOTAS_PROMEDIO)

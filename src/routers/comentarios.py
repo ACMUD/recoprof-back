@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from odmantic import ObjectId
 from db.models import Comentario
 from responseBody import ComentarioBase
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 @router.get('/{profesor_id}', response_model=list[ComentarioBase])
-async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: int = 0, limit: int = 10, repo_comentario=Depends(get_comentarios_repository)):
+async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: int = 0, limit: int = Query(10, le=20), repo_comentario=Depends(get_comentarios_repository)):
     return await repo_comentario.get_comments_by_profesor(profesor_id, asignatura, page, limit)
 
 

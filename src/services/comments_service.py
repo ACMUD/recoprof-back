@@ -2,7 +2,7 @@ from odmantic import ObjectId
 from db.repository.profesor_repository import ProfesorRepository
 from db.repository.comentarios_repository import ComentarioRepository
 from db.repository.notas_repository import NotasRepository
-from db.models import Notas, Puntuacion, Comentario, Profesor
+from db.models import Notas, Puntuacion, Comentario, Profesor, Puntuacion_prof
 
 class CommentsService:
     def __init__(self, comentarios_repo: ComentarioRepository, repo_notas: NotasRepository, repo_profesor: ProfesorRepository) -> None:
@@ -26,6 +26,11 @@ class CommentsService:
         puntuacion: Puntuacion = Puntuacion(valor=comentario.puntuacion, cantidad = 1, semestre=comentario.semestre)
 
         await self.update_profesor_score(profesor.id, comentario.asignatura, puntuacion)
+
+        puntaje: int = await self.repo_profesor.get_profesor_score(profesor.id)
+
+        profesor.puntuacion = Puntuacion_prof(valor=puntaje, semestre=(0,0))
+        await self.repo_profesor.save(profesor)
         return comment
 
     async def delete_comment(self, comment_id: ObjectId):
