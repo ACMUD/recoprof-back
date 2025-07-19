@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from odmantic import ObjectId
 from db.models import Comentario
-from responseBody import ComentarioBase
+from responseBody import ComentarioBase, PaginacionComentario
 from schemas.comment_post import CommentPostSchema
 from services.comments_service import CommentsService
 from typing import Annotated, Literal
@@ -14,9 +14,17 @@ router = APIRouter(
     prefix="/api/comment"
 )
 
-@router.get('/{profesor_id}', response_model=list[ComentarioBase])
+@router.get('/{profesor_id}', response_model=PaginacionComentario)
 async def get_profesor_comments(profesor_id: ObjectId, asignatura=None, page: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=20), repo_comentario=Depends(get_comentarios_repository)):
-    return await repo_comentario.get_comments_by_profesor(profesor_id, asignatura, page, limit)
+
+    count:int = await repo_comentario.count_comments_by_profesor(profesor_id, asignatura)
+
+    return {
+        "total": count,
+        "pagina": page,
+        "total_paginas": (count + limit - 1) // limit,
+        "contenido": await repo_comentario.get_comments_by_profesor(profesor_id, asignatura, page, limit)
+    }
 
 
 @router.post('/')

@@ -61,14 +61,14 @@ def unwind(
         "$unwind": field
     }]
 
-def sort(
-    field: str,
-    order: int = 1
-):
+def sort(*args):
+    sort_ = {}
+    for i in range(0, len(args)-1, 2):
+        sort_[args[i]] = args[i+1]
+
+
     return [{
-        "$sort": {
-            field: order
-        }
+        "$sort": sort_
     }]
 
 
@@ -125,3 +125,10 @@ PROMEDIO_GLOBAL.extend([{
         }
     }])
 PROMEDIO_GLOBAL.extend(unset("_id"))
+
+COMENTARIOS_PIPE: list[dict] = []
+
+COMENTARIOS_PIPE.extend(lookup('asignatura', 'asignatura', '_id', 'asignatura_info', [{'$project': {'_id': 0,'id': '$_id', 'nombre': 1}}]))
+COMENTARIOS_PIPE.extend(unset('asignatura'))
+COMENTARIOS_PIPE.extend(unwind('$asignatura_info'))
+COMENTARIOS_PIPE.extend(add_fields('id', '$_id'))
